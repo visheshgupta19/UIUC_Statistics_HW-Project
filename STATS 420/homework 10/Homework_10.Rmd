@@ -1,0 +1,297 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+### Name - vvgupta
+
+# Homework 10
+
+## Homework Instructions
+
+For questions that require code, please create a code chunk directly below the question and type your code there. Your knitted pdf will show both your code and your output. You are encouraged to knit your file as you work to check that your coding and formatting is done so appropriately.
+
+For written responses or multiple choice questions, please bold your (selected) answer. 
+
+## Grading Details
+
+All questions will be graded full credit (1 point), half credit (0.5 point) or no credit (0 points). 
+
+Full credit responses should have the correct response and appropriate code (if applicable). Half credit responses will have a reasonable attempt (typically no more than one small error or oversight), and no credit responses will be either non-attempts or attempts with significant errors.
+
+### Exercise 1
+
+Consider the model
+
+$$
+Y = 2 + 4 x + \epsilon
+$$
+
+where
+
+$$
+\epsilon \sim N(0, \sigma^2 = x ^ 2).
+$$
+
+That is
+
+$$
+\text{Var}[Y \mid X = x] = x ^ 2.
+$$
+
+Calculate 
+
+$$
+P[Y < -12 \mid X = -3].
+$$
+
+```{r}
+# solution
+X = -3
+EY = 2+(4*X)
+var = X^2
+pnorm(-12, mean = EY, sd = sqrt(var))
+```
+
+
+### Exercise 2
+
+```{r}
+# starter
+airquality = na.omit(airquality)
+```
+
+For exercises 2 - 13, use `Ozone` as the response and `Temp` as a single predictor. The normality and constant variance assumptions are suspect for a simple model here. We will be exploring some other modeling options with predictor and response transformations!
+
+Consider the quadratic model:
+
+$$
+Y = \beta_0 + \beta_1 x + \beta_2 x^2 + \epsilon
+$$
+
+Fit this model and run the summary of this model.
+
+```{r}
+# solution
+model1 = lm (Ozone~Temp + I(Temp^2), data = airquality)
+summary(model1)
+```
+
+
+### Exercise 3
+
+Using the `ggplot2` package, create a scatterplot that uses `Temp` as a predictor of `Ozone`. Add a best fit equation to represent the quadratic model you just fit. Additionally:
+
+- Add a title "Ozone Level by Temperature"
+- Adjust the x axis label to "Temperature"
+- Adjust the y axis scale to go by 20's
+- All other formatting optional
+
+```{r}
+# solution
+library(ggplot2)
+ylabel = seq(50,100,by=20)
+ggplot(data = airquality, aes(x = Temp, y = Ozone)) +
+        labs(title = "Ozone Level by Temperature", x="Temperature")+
+        geom_point()+
+        geom_smooth(method = "lm", formula = y ~ x + I(x^2) )+
+        scale_y_continuous(breaks = c(0,20,40,60,80,100,120,140,160,180, 200)) 
+
+```
+
+
+### Exercise 4
+
+Run the shapiro wilk test on the residuals of this model.
+
+Also, create a residual plot of the model we created. You may use the base plot features _or_ ggplot2 to do this. 
+- Please make sure you label your axes as "fitted" and "residuals"
+- Give your plot the title "Residuals for 2nd Order Model"
+- All other formatting optional
+
+_Note: To use ggplot2 here, you would need to make a data frame or tibble with two variables--one for the residuals and one for the fitted values. ggplots require a `data = ...` argument!_
+
+
+```{r}
+#solution
+shapiro.test(resid (model1))
+plot(fitted(model1), resid(model1), main = "Residuals for 2nd Order Model", xlab = "fitted", ylab="residual", pch=20)
+```
+
+
+### Exercise 5
+
+Based on your original scatterplot, your regression output, the shapiro-wilk test, and your residual plot, which statement makes the most sense? 
+
+**- The quadratic model does not seem to improve upon the simple model.**
+
+- The quadratic model fits better than the simple model, but there is still some fit issues related to non-normality of the residuals
+
+- The quadratic model fits better than the simple model, and the residuals appear to be close to normal
+
+
+### Exercise 6
+
+Now, consider the quartic model:
+
+$$
+Y = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3  + \beta_4 x^4  + \epsilon
+$$
+
+Fit and run a summary of the quartic model.
+
+Then, using `ggplot2`, create a scatterplot and add a best fit equation that fits the quartic model (4th order polynomial). Additionally:
+
+- Add a title "Ozone Level by Temperature"
+- Adjust the x axis label to "Temperature"
+- All other formatting optional
+
+```{r}
+# solution
+model2 = lm (Ozone~Temp + I(Temp^2) + I(Temp^3) + I(Temp^4), data = airquality)
+summary(model2)
+library(ggplot2)
+ggplot(data = airquality, aes(x = Temp, y = Ozone)) +
+        labs(title = "Ozone Level by Temperature", x="Temperature")+
+        geom_point()+
+        geom_smooth(method = "lm", formula = y ~ x + I(x^2) + I(x^3) + I(x^4) )
+```
+
+
+### Exercise 7
+
+Run the shapiro wilk test on the residuals of this model.
+
+Also, create a residual plot of the model we created. You may use the base plot features _or_ ggplot2 to do this. 
+- Please make sure you label your axes as "fitted" and "residuals"
+- Give your plot the title "Residuals for 4th Order Model"
+- All other formatting optional
+
+```{r}
+# solution
+shapiro.test(resid (model2))
+plot(fitted(model2), resid(model2), main = "Residuals for 4th Order Model", xlab = "fitted", ylab="residual", pch=20)
+```
+
+
+### Exercise 8
+
+Now, fit the model using a log transformation
+
+$$
+\log(y) = \beta_0 + \beta_1 x + \epsilon.
+$$
+
+Fit and run a summary of the log model.
+
+Then, using `ggplot2`, create a scatterplot and add a best fit equation that fits the log model. To do this, define y  as `log(Ozone)` in the aes argument, and then just fit a simple model with `y ~ x` in the formula argument.
+
+Additionally:
+
+- Add a title "Log of Ozone Level by Temperature" <--Notice this is different!
+- Adjust the x axis label to "Temperature"
+- Adjust the y axis label to "Log of Ozone" <-- Notice this is different!
+- All other formatting optional
+
+```{r}
+#solution
+model3 = lm (log(Ozone)~Temp, data = airquality)
+summary(model3)
+library(ggplot2)
+ggplot(data = airquality, aes(x = Temp, y = log(Ozone))) +
+        labs(title = "Log of Ozone Level by Temperature", x="Temperature", y="Log of Ozone")+
+        geom_point()+
+        geom_smooth(method = "lm", formula = (y ~ x) )
+```
+
+### Exercise 9
+
+Run the shapiro wilk test on the residuals of this model.
+
+Also, create a residual plot of the model we created. You may use the base plot features _or_ ggplot2 to do this. 
+- Please make sure you label your axes as "fitted" and "residuals"
+- Give your plot the title "Residuals for Log Model"
+- All other formatting optional
+
+```{r}
+# solution
+shapiro.test(resid (model3))
+plot(fitted(model3), resid(model3), main = "Residuals for Log Model", xlab = "fitted", ylab="residual", pch=20)
+```
+
+### Exercise 10
+
+Lastly, let's explore a Box-Cox Method Transformation for the Response variable.
+
+Fit a simple model with `Ozone` predicted from `Temp`. Then using the `MASS` package, run the `boxcox` function on this model. Be sure to plot the result. 
+
+_Hint: Consider narrowing down the lambda window to a more targeted range._
+
+```{r}
+# solution
+library('MASS')
+model4 = lm (Ozone~Temp, data = airquality)
+a = boxcox(model4, plotit=TRUE)
+boxcox(model4, plotit=TRUE)
+```
+
+### Exercise 11
+
+Using your results from the previous exercise, Fit a model that transforms the response variable by the appropriate lambda value. Go ahead and round your lambda value to the nearest tenth (For example, 0.1 or 0.2 or 0.3,...).
+
+Run a summary of that model. 
+
+Then, using `ggplot2`, create a scatterplot and add a best fit equation that fits this model. Just like with the log model, you'll need to adjust y in the aes argument, and then just fit a simple model with `y ~ x` in the formula argument.
+
+Additionally:
+
+- Add a title "Box-Cox of Ozone Level by Temperature" <--Notice this is different!
+- Adjust the x axis label to "Temperature"
+- Adjust the y axis label to "Box Cox of Ozone" <-- Notice this is different!
+- All other formatting optional
+
+```{r}
+#solution
+x12 = round(a$x[a$y == max(a$y)],1)
+model5 = lm((((Ozone^x12)-1)/x12)~Temp, data = airquality)
+summary(model5)
+ggplot(data = airquality, aes(x = Temp, y = (((Ozone^x12)-1)/x12))) +
+        labs(title = "Box-Cox of Ozone Level by Temperature", x="Temperature", y="Box Cox of Ozone")+
+        geom_point()+
+        geom_smooth(method = "lm", formula = y~x )
+```
+
+
+### Exercise 12
+
+Run the shapiro wilk test on the residuals of this model.
+
+Also, create a residual plot of the model we created. You may use the base plot features _or_ ggplot2 to do this. 
+- Please make sure you label your axes as "fitted" and "residuals"
+- Give your plot the title "Residuals for Box Cox Model"
+- All other formatting optional
+
+```{r}
+# solution
+shapiro.test(resid (model5))
+plot(fitted(model5), resid(model5), main = "Residuals for Box Cox Model", xlab = "fitted", ylab="residual", pch=20)
+```
+
+
+### Exercise 13
+
+We have investigated 4 alternative model options to the simple linear fit. Which of these four alternative models do you believe fits the normality assumption (and arguably, also the equal variance assumption) the best?
+
+_Note: We've seen several other considerations for choosing a model as well: Lowest RMSE on new data, Highest $R^2$, F-test comparison of models...in the next two chapters, we'll spend more time on variable selection and choosing a sensible model!_
+
+- Quadratic model
+
+**- Quartic model**
+
+- Log Model
+- Box Cox Model
+
+
+
+

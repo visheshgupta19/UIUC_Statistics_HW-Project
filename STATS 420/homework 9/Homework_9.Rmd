@@ -1,0 +1,217 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+### Name - NetID
+
+# Homework 9
+
+## Homework Instructions
+
+For questions that require code, please create a code chunk directly below the question and type your code there. Your knitted pdf will show both your code and your output. You are encouraged to knit your file as you work to check that your coding and formatting is done so appropriately.
+
+For written responses or multiple choice questions, please bold your (selected) answer. 
+
+## Grading Details
+
+All questions will be graded full credit (1 point), half credit (0.5 point) or no credit (0 points). 
+
+Full credit responses should have the correct response and appropriate code (if applicable). Half credit responses will have a reasonable attempt (typically no more than one small error or oversight), and no credit responses will be either non-attempts or attempts with significant errors.
+
+### Exercise 1
+
+```{r}
+# preamble
+gen_data_1 = function(sample_size = 50, seed = 420) {
+  set.seed(seed)
+  x = runif(n = sample_size, min = 0, max = 3)
+  y = 2 + 3 * x + rnorm(n = sample_size)
+  data.frame(x = x, y = y)
+}
+
+gen_data_2 = function(sample_size = 50, seed = 420) {
+  set.seed(seed)
+  x = runif(n = sample_size, min = 0, max = 3)
+  y = 2 + 3 * x + rf(n = sample_size, df1 = 4, df2 = 30)
+  data.frame(x = x, y = y)
+}
+
+data_1 = gen_data_1()
+data_2 = gen_data_2()
+```
+
+```{r, eval = FALSE}
+# starter
+data_1
+data_2
+```
+
+The above code block has access to two data frames named `data_1` and `data_2`, both with variables variables `y` and `x`. Here, we use `y` as the response.
+
+Fit a simple linear regression to both datasets (no summaries needed for now). 
+
+Then create a scatterplot to compare x and y for both sets of data. Add lines of best fit (based on the model you created) for each.
+
+Include a title for each. All other formatting optional. 
+
+_Note: For this homework, you do not need to use ggplot2 for any graphs (unless you want to!). We will be focused on simply checking model diagnostics, which means base R plots are fine. ggplot2 is best when making fancier and cleaner plots for purposes of presentation._
+
+```{r}
+#solution
+line1_model = lm (y~x, data = data_1)
+line2_model = lm (y~x, data = data_2)
+plot(data_1$x, data_1$y, main = "data 1")
+abline(line1_model)
+plot(data_2$x, data_2$y, main = "data 2")
+abline(line2_model)
+```
+
+### Exercise 2
+
+Continue using the data from Exercise 1. For both fitted regressions, create a Normal Q-Q Plot. Include titles and axes labels. All other formatting optional. 
+
+```{r}
+# solution
+qqnorm(resid(line1_model), main = " data 1 normal qq plot",xlab = "Theoretical" , ylab = "Sample" )
+qqline(resid(line1_model))
+qqnorm(resid(line2_model), main = " data 1 normal qq plot",xlab = "Theoretical" , ylab = "Sample" )
+qqline(resid(line2_model))
+```
+
+### Exercise 3
+
+Continue using the data from Exercise 1. For both fitted regressions, create Fitted versus Residuals plot. Include titles and axes labels. All other formatting optional. 
+
+```{r}
+# solution
+plot (fitted(line1_model), resid (line1_model), main = "Fitted versus Residuals plot", xlab = "Fitted", ylab= "Residual")
+abline(h=0)
+plot (fitted(line2_model), resid (line2_model), main = "Fitted versus Residuals plot", xlab = "Fitted", ylab= "Residual")
+abline(h=0)
+```
+
+### Exercise 4
+
+Continue using the data created from Exercise 1. Run a Shapiro-Wilk test on both model residuals and report the p-values from each.
+
+```{r}
+#solution
+shapiro.test(resid (line1_model))
+shapiro.test(resid (line2_model))
+shapiro.test(resid (line1_model))$p.value
+shapiro.test(resid (line2_model))$p.value
+```
+
+### Exercise 5
+
+Continue using the data from Exercise 1. Use a Breusch-Pagan Test to check for heteroscedasticity. 
+
+Note, you may need to install the `lmtest` package first. Then delete or # that line before trying to knit the file.
+
+```{r}
+# solution
+#install.packages("lmtest")
+library(lmtest)
+bptest (line1_model)
+bptest (line2_model)
+```
+
+
+### Exercise 6
+
+Continue using the data from Exercise 1. After reviewing all of the diagnostic results above, which conclusions seem appropriate? One or more statements may be true! **Bold** your selections.
+
+- The normality assumption for data_1 is suspect
+
+**- The normality assumption for data_2 is suspect**
+
+- The constant variance assumption for data_1 is suspect
+- The constant variance assumption for data_2 is suspect
+
+### Exercise 7
+
+For exercises 7 - 12, use the `LifeCycleSavings` dataset which is built into `R`. 
+
+```{r}
+#starter
+
+```
+
+Fit a multiple linear regression model with `sr` as the response and the remaining variables as predictors. What proportion of observations have a standardized residual less than 2 in magnitude?
+
+_Hint: Remember that some standardized residuals are negative and some are positive. Take the absolute value!_
+
+_Hint: Remember you can take the `mean` of a vector of logicals (TRUE and FALSE values) to calculate the proportion that are true!_
+
+```{r}
+# solution
+LifeCycleSavings_model = lm (sr~pop15+pop75+dpi+ddpi, data = LifeCycleSavings)
+sum(abs(LifeCycleSavings_model$residuals) < 2)/length(LifeCycleSavings_model$residuals)
+```
+
+### Exercise 8
+
+Continue using the model fit in Exercise 7. Note that each observation is about a particular country. Which country (observation) has the standardized residual with the largest magnitude?
+
+_Hint: This question is asking for the Country name, which is a rowname. You can extract that rowname by using the function `names` to extract simply the rowname._ 
+
+```{r}
+# solution
+a = max(abs(LifeCycleSavings_model$residuals))
+z = abs(LifeCycleSavings_model$residuals) == a
+(abs(LifeCycleSavings_model$residuals))[z]
+```
+
+### Exercise 9
+
+Continue using the model fit in Exercise 7. How many observations have "high" leverage? Use twice the average leverage as the cutoff for "high."
+
+_Hint: Use `sum` to count the number of `TRUE` entries in a vector of logicals._
+
+```{r}
+# solution
+sum(hatvalues(LifeCycleSavings_model)> 2 * mean(hatvalues(LifeCycleSavings_model)))
+```
+
+### Exercise 10
+
+Continue using the model fit in Exercise 4. Which country (observation) has the largest leverage?
+
+_Hint: `which.max` may be helpful!_
+
+_Hint: This question is asking for the Country name, which is a rowname. You can extract that rowname by using the function `names` to extract simply the rowname._ 
+
+```{r}
+# solution
+a1 = max(hatvalues(LifeCycleSavings_model))
+z1 = hatvalues(LifeCycleSavings_model) == a1
+(abs(LifeCycleSavings_model$residuals))[z1]
+```
+
+
+### Exercise 11
+
+Continue using the model fit in Exercise 7. Report the largest Cook's Distance for observations in this dataset.
+
+```{r}
+# solution
+max(cooks.distance(LifeCycleSavings_model))
+```
+
+### Exercise 12
+
+Continue using the model fit in Exercise 7. We wish to exclude observations from the model that are overly influential (in general practice, this should involve more contextual thought before simply ignoring the data, but we will skip that for sake of the coding practice!) 
+
+Use $\frac{4}{n}$ as the cutoff for labeling an observation "influential."
+
+Then refit a new model to this data that excludes these influential observations. Report the summary of this new model.
+
+```{r}
+# solution
+low = cooks.distance(LifeCycleSavings_model) <= 4/length(cooks.distance(LifeCycleSavings_model))
+model_new = lm (sr~pop15+pop75+dpi+ddpi, data = subset(LifeCycleSavings,low))
+model_new
+```
+

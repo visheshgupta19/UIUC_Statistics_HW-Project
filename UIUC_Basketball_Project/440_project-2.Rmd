@@ -1,0 +1,508 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+## 440 Project 
+
+## Team Name - Flyin' Illini Data Dorks - Clare Oehler-O'Sullivan, Vishesh Gupta, Aneesh Balusu
+
+## Title - Basketball Data Management
+
+## Introduction
+
+Is there a recipe for success in the NBA? Will going to a certain college, having a certain weight to height ratio, etc. make you more likely to succeed? We will be exploring the success of players with various different backgrounds in the NBA and seeing if there are any correlations.
+
+Questions to Address:
+
+1. Which universities tend to create athletes who are drafted into the NBA the most?
+2. Who are the top scoring players and where did they come from?
+3. Is there a correlation between different positions and what height the players of those positions should be?
+4. Do the top scoring players have a higher weight to height ratio or lower than the mean weight-height ratio?
+5. Which positions are most likely to be NBA Player of the Year?
+
+
+### Research Interest
+
+We are interested in creating a combined table using either 2 or 3 of the below data files to seek further
+information regarding the correlation between the transition of players from a university level to the NBA
+level. We intended on using the lower 2 mentioned data sets to try and summarize which universities tend to
+create athletes who are drafted into the NBA and have been selected in the all star team on a yearly basis.
+We are then interested in making predictions from the first basketball data set to understand which positions
+are most likely to be NBA Player of the Year and seeing if there is a correlation between # of Seasons in
+League and Age. We could further summarise the data to look at which variables in the combined data set
+are redundant to our response variable and then summarise the remaining predictors.
+
+We will first merge our data sets to get a collective data sets with the required observations. Based on our
+initial observation this will be done using the players name. This combined data set will consist of multiple
+inconsistencies as we will have to remove rows consisting of NA’s in variables such as college, team, pos and
+so on. We will possibly have to ensure that the players teams are well documented as one player could have
+played for multiple teams over his career. Therefore we will need to convert the Team abbreviations to their
+full name in our combined data set to ensure we have merged the data correctly. We may need to make
+various data type changes such as converting the height column into inches, the date column into date type
+and more.
+
+## Methods
+
+### Data files:
+
+1. NBA Player of the Week dataset : https://urldefense.com/v3/__https://www.kaggle.com/jacobbaruch/nba-player-of-the-week__;!!DZ3fjg!tnr4cfFS_MOGsYi4NFFmQ-xVGf-Y8Dzbc5pRMjpjv_V8I83zavnaf7GL3vCKh3gvDnCq$ 
+- variables: 17
+- observations: 1,345
+
+Some important columns include: Player, Team, Position, Age, Draft Year, # of Seasons in League.
+
+This dataset got its data from this source: https://urldefense.com/v3/__https://basketball.realgm.com/__;!!DZ3fjg!tnr4cfFS_MOGsYi4NFFmQ-xVGf-Y8Dzbc5pRMjpjv_V8I83zavnaf7GL3vCKh1xwKhNG$ 
+Citation: “Basketball News, Rumors, Scores, Stats, Analysis, Depth Charts, Forums.” RealGM, basketball.realgm.com/. 
+
+2. Two decades of data on each player who has been part of an NBA teams’ roster:
+https://urldefense.com/v3/__https://www.kaggle.com/justinas/nba-players-data__;!!DZ3fjg!tnr4cfFS_MOGsYi4NFFmQ-xVGf-Y8Dzbc5pRMjpjv_V8I83zavnaf7GL3vCKh1Bb9NbU$ 
+- variable: 22
+- observation: 11146
+
+Some important columns across Two decades of data on each player who has been part of an NBA teams’
+roster include: player_name, team_abbreviation, college, age, draft year, pts
+
+3. NBA all star teams: https://urldefense.com/v3/__https://www.kaggle.com/fmejia21/nba-all-star-game-20002016__;!!DZ3fjg!tnr4cfFS_MOGsYi4NFFmQ-xVGf-Y8Dzbc5pRMjpjv_V8I83zavnaf7GL3vCKh_4G-IX-$ 
+- variable: 9
+- observation: 439
+
+### Background information on these Files:
+
+The NBA Player of the Week dataset got its data from this source:
+
+https://urldefense.com/v3/__https://basketball.realgm.com/__;!!DZ3fjg!tUll3tseX9zHytgVMYzqdCwGsk1-
+O5CaIzSwoS8CE7BGNgu6ml111t1I20XCHkDstL0z$
+
+Citation: “Basketball News, Rumors, Scores, Stats, Analysis, Depth Charts, Forums.” RealGM, basket-
+ball.realgm.com/.
+
+The NBA Player all star teams dataset got its data from this source:
+
+https://urldefense.com/v3/__https://www.kaggle.com/fmejia21/nba-all-star-game-20002016__;!!DZ3fjg!tnr4cfFS_MOGsYi4NFFmQ-xVGf-Y8Dzbc5pRMjpjv_V8I83zavnaf7GL3vCKh_4G-IX-$ 
+
+The data set regarding two decades of data on each player who has been part of an NBA teams’ roster got
+its data from this source:
+
+https://urldefense.com/v3/__https://www.kaggle.com/justinas/nba-players-data__;!!DZ3fjg!tnr4cfFS_MOGsYi4NFFmQ-xVGf-Y8Dzbc5pRMjpjv_V8I83zavnaf7GL3vCKh1Bb9NbU$ 
+
+## Results
+
+### Loading Libraries
+
+We will be using the library tidyverse, because it contains many helpful functions that we commonly use in R code. We will be using the library readr to read our data in from their sources from csv format into a dataframe. We will be using the library sqldf to write SQL code in R. We will be using dpylr because this library makes it easier to do multiple operations on a single dataset easier.
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(readr)
+library(sqldf)
+library(dplyr)
+```
+
+
+### Loading Data and formatting date columns to be date format 
+
+On uploading the data we noticed that for two of our data sets the dates data type was set as a character. Therefore, we decided to convert the data type to a date and formatted the information for each data set in the patter of month-day-year
+
+```{r, warning=FALSE, message=FALSE}
+NBA_player_of_the_week <- read_csv("NBA_player_of_the_week.csv", 
+    col_types = cols(Date = col_date(format = "%b %d, %Y")))
+
+
+all_seasons <- read_csv("all_seasons.csv")
+
+```
+
+### Merge these NBA datasets and making it so there is only one occurance of each player and the data on both of these seasons about the player
+
+While we are combining both the data sets we need to ensure that the names of the players are unique i.e. there are no multiple occurrences of a players name. Therefore when we are creating 'remove_dup_players_all_seasons' we group by player_name. To then have a common unique variable which can be used to combine the two data sets we need to replace 'player_name' as 'Player' so that an innew join can be performed. 
+
+```{r}
+length(unique(all_seasons$player_name))
+# ensure our data only contains unique player names and no duplicates for each data file read in 
+
+remove_dup_players_all_seasons =sqldf("  SELECT *
+                                      FROM   all_seasons
+                                      GROUP BY player_name
+                                      ")
+
+remove_dup_players_all_seasons = remove_dup_players_all_seasons %>%
+  mutate (Player = player_name)
+
+remove_dup_players_NBA_player_of_the_week = sqldf("
+  SELECT *
+  FROM   NBA_player_of_the_week
+  GROUP BY Player
+  ")
+
+#create one common data set 
+combined_unique_player_set = inner_join(remove_dup_players_all_seasons, 
+                                        remove_dup_players_NBA_player_of_the_week, 
+                                        by = 'Player')
+
+str(combined_unique_player_set)
+```
+
+### Getting rid of duplicates of the same column name
+
+When we merged these datasets, we can observe that some of the columns in these datasets have the same name with a different capitalization, such as 'Age' and 'age'. R does not handle having multiple of the same column name well so we went in and renamed the age and season from the Player of the Week dataset to be new_age and new_season that way there is no confusion between multiple of the same column name.
+
+We were able to do this by creating a new column name called new_age and new_season and assigning these column names to contain the data in Age and Season, respectively. From here, we dropped the old columns Age and Season.
+
+```{r}
+combined_unique_player_set = combined_unique_player_set %>%
+  mutate(new_age = Age) %>%
+  select(-Age) %>%
+  mutate(new_season = Season) %>%
+  select(-Season)
+```
+
+
+### Ordering these players in descending order by the number of points they score per game
+
+We want to order these players by the average number of points they score per game that way we can determine who the best shooters are. Then we will be able to see what schools the highest scoring players are from. We are interested in comparing these colleges with the colleges who have the players with the most assists because we are caring about the best offensive teams. We would like to see if some of the same schools have the players with the most points scored and the most assists.
+
+We will output the 10 highest scoring players in this dataset because right now we are only looking at the very best players.
+
+```{r}
+scorers = sqldf("
+                                   SELECT Player, team_abbreviation, college, draft_year, net_rating, pts, Position
+                                   FROM combined_unique_player_set
+                                   ORDER BY pts desc
+                                   ")
+
+top_scorers = head(scorers, 10)
+top_scorers
+```
+
+### Ordering these players in descending order by their assist percentage over all seasons
+
+For anyone who is unfamiliar with basketball terms, assist percentage refers to the percentage of field goals a teammate made that this player passed the ball to. A player's assist percentage can tell you a lot about how well a player knows the game and is able to play offensively.
+
+We will do the same thing that we did for average points scored per game to the players assist percentage, ordering in descending order by assist percentage. We will output the 10 highest assisting players in this dataset and compare these to the 10 highest scoring players. We will be able to see if these are any players in common between the top scorers and the top assisters. We are only selecting to output the relevant columns.
+
+```{r}
+assisters = sqldf("
+                                  SELECT Player, team_abbreviation, college, draft_year, net_rating, ast_pct, Position
+                                   FROM combined_unique_player_set
+                                   ORDER BY ast_pct desc
+                                   ")
+
+top_assisters = head(assisters, 10)
+top_assisters
+```
+We can observe that there are no matches in the data of players who are both top scorers and top assisters. We can conclude that different players are good at scoring and assisting. 
+
+But now, we are curious about which college programs are the best at offense collectively and have had the best scorers and assisters.
+
+
+### Making a frequency table for the Colleges that have players in the top 50 Scorers & top 50 Assisters.
+
+In order to see which college programs have had the best scorers, we will select the first 50 entries of the sorted data on the the average scoring percentage. 
+
+To do this correctly, we need to filter out colleges listed as 'None'. There will be 'None' in the data under college for any players that did not go to college and joined the NBA right out of high school. The way we will determine the frequency of each college program in the top 50 scoring players, we will count each program by the number of times it appears in the top 50 dataset. Then, we will sort the data in descending order of their frequencies and alphabetically by college name after that.
+
+```{r}
+top_50_scorers = scorers[1:50,]
+
+top_scoring_programs = sqldf("
+      select college, count(college) as frequency
+      from top_50_scorers
+      where college not in ('None')
+      group by college
+      order by frequency desc, college
+      ")
+
+best_scoring = head(top_scoring_programs, 10)
+best_scoring
+```
+
+Now, we will take a subset of the top 50 assisting players from the sorted assisters dataset. We are able to simply take the first 50 entries of this dataset because it is already sorted by assist percentage in descending order.
+
+Again, we filtered out the colleges in this dataset that were labelled 'None'. We counted the number of times a college was in the dataset using the count function and setting that to a new column name, frequency. We grouped our data by college with the group by function so that each program is only listed once. Finally, we sorted in descending order by frequency and then alphabetically by college.
+
+```{r}
+top_50_assisters = assisters[1:50,]
+
+top_assisting_programs = sqldf("
+      select college, count(college) as frequency
+      from top_50_assisters
+      where college not in ('None')
+      group by college
+      order by frequency desc, college
+      ")
+
+best_assisting = head(top_assisting_programs, 10)
+best_assisting
+```
+### Which programs are in the top 10 list for both top scoring programs and top assisting programs?
+
+I iterated through each entry in the top 10 best scoring colleges and for each of those college I checked if the college was the same as each of the top 10 best scoring colleges. Each time I found a match, I printed out the college. 
+
+```{r}
+for (i in 1:nrow(best_scoring)){
+  for (j in 1:nrow(best_assisting)){
+    if (best_scoring$college[i] == best_assisting$college[j]){
+      print(best_scoring$college[i])
+    }
+  }
+}
+```
+
+Generally speaking, the players at Duke, Oklahoma, California, and Kentucky have had the most top notch scoring and assisting players out of this dataset and these schools have some the highest quality offensive programs. If a top-notch player who wants to enter the NBA wants to have the best chances of success at scoring or assisting, he should consider going to college at Duke, Oklahoma, California, or Kentucky because these schools train their players well offensively and these players go on to be top scoreres and assisters in the NBA.
+
+### Now, we will explore a new topic related to the success of NBA Players, their weight to height ratio.
+
+Many players often wonder whether it is more beneficial to be bulky with muscle for basketball or to be lean. The right balance between bulking up and slimming down is different for everyone because we all have different body types. However, we are curious to explore whether players who have a higher weight to height ratio than the average NBA player are more successful or if a lower weight to height ratio is more successful on average.
+
+To do this, we will add a new variable called wh_ratio that is the Weight to Height ratio of the players. We will compare the ratio for the average player on the team to each of the top scorers and see if the top scorers have more or less weight than the average ratio.
+
+We will output our dataframe that contains applicable columns and the average weight to height ratio. In this data, the variable Weight is in kg and height is in cm.
+
+```{r}
+combined_unique_player_set = combined_unique_player_set %>%
+  mutate(wh_ratio = player_weight / player_height)
+
+weight_height_ratio_set = sqldf("
+                                   SELECT Player, team_abbreviation, college, draft_year, net_rating, ast_pct, wh_ratio
+                                   FROM combined_unique_player_set
+                                   ORDER BY wh_ratio desc
+                                   ")
+head(weight_height_ratio_set, 10)
+avg_ratio = mean(weight_height_ratio_set$wh_ratio)
+avg_ratio
+```
+
+### Do the top scoring players have a higher weight to height ratio or lower than the mean weight-height ratio?
+
+We will now add another column to this dataset called higher_ratio that returns TRUE when a player's weight to height ratio is higher than the average weight to height ratio and FALSE when it is lower.
+
+```{r}
+score_ratio_df = sqldf("
+      select top_scorers.Player, top_scorers.pts, weight_height_ratio_set.wh_ratio
+      from weight_height_ratio_set, top_scorers
+      where top_scorers.Player = weight_height_ratio_set.Player 
+      order by pts desc
+      ")
+
+score_ratio_df$higher_ratio = ifelse(score_ratio_df$wh_ratio > avg_ratio, TRUE, FALSE)
+score_ratio_df
+```
+*7/10* of the top scorers are above average in their weight to height ratio. According to our data, on average, the highest scoring basketball players are the ones who weigh more. This could be due to their muscle mass.
+
+### Do the top assisting players have a higher weight to height ratio or lower than the mean weight-height ratio?
+
+We will also add another column to this dataset called higher_ratio that returns TRUE when a player's weight to height ratio is higher than the average weight to height ratio and FALSE when it is lower.
+
+```{r}
+ast_ratio_df = sqldf("
+      select top_assisters.Player, top_assisters.ast_pct, weight_height_ratio_set.wh_ratio
+      from weight_height_ratio_set, top_assisters
+      where top_assisters.Player = weight_height_ratio_set.Player 
+      order by top_assisters.ast_pct desc
+      ")
+
+ast_ratio_df$higher_ratio = ifelse(ast_ratio_df$wh_ratio > avg_ratio, TRUE, FALSE)
+ast_ratio_df
+```
+
+*7/10* of the top assisters also are above average in their weight to height ratio. According to our data, on average, the highest assisting basketball players are the ones who weigh more. This might also be due to their muscle mass.
+
+We now used a common methodology amongst all the three cleaned datasets above along with the new formed joined data. To obtain the best univeristy program we:
+
+-       Removed all the NA values 
+-       Created a frequency table of the dataset being taken into consideration
+-       Calculated the percentage of each unique college 
+-       Obtained the best program by finding the highest percentage
+
+Based on the answers we ensure that the players within that subcategory are distinct and then based on this conclusion we further looked at what are the necessary parameters for success while you are still in the program.
+
+Based on the all seasons data only:
+```{r}
+# create a frequency table to understand the university with the highest percentage of student athletes that make it to the NBA
+
+number_of_players_1 = table(remove_dup_players_all_seasons$college)
+number_of_players_1 = as.data.frame(number_of_players_1)
+number_of_players_1 = number_of_players_1%>%
+  mutate(per_per_school = (number_of_players_1$Freq/nrow(number_of_players_1))*100)
+x1 = sort(number_of_players_1$per_per_school)
+x1 = x1[306]
+z1 = (number_of_players_1$per_per_school == x1)
+number_of_players_1$Var1[z1]
+```
+
+```{r}
+#statistical analysis 
+#college decided based on above code chucks observation 
+players_from_best_uni_1=sqldf("
+  SELECT *
+  FROM   remove_dup_players_all_seasons
+  WHERE  college == 'Kentucky'     
+  ")
+players_from_best_uni_1
+teams_from_college_1 = table(players_from_best_uni_1$team_abbreviation)
+mean(players_from_best_uni_1$player_height)
+mean(players_from_best_uni_1$player_weight)
+mean(players_from_best_uni_1$age)
+teams_from_college_1
+```
+
+
+Based on the combined subsetted data the best program is:
+- This data has the combination of NBA player of the week and all NBA players.
+```{r}
+# create a frequency table to understand the university with the highest percentage of student athletes that make it to the NBA
+
+number_of_players = table(combined_unique_player_set$`Pre-draft Team`)
+number_of_players = as.data.frame(number_of_players)
+number_of_players = number_of_players%>%
+  mutate(per_per_school = (number_of_players$Freq/nrow(number_of_players))*100)
+x = max(number_of_players$per_per_school)
+x
+z = (number_of_players$per_per_school == x)
+number_of_players$Var1[z]
+
+```
+
+```{r}
+#statistical analysis
+#college decided based on above code chucks observation 
+players_from_best_uni=sqldf("
+  SELECT *
+  FROM   combined_unique_player_set
+  WHERE `Pre-draft Team` == 'Kentucky'     
+  ")
+players_from_best_uni
+teams_from_college = table(players_from_best_uni$Team)
+conference_from_college = table(players_from_best_uni$Conference)
+best_pos_from_college = table(players_from_best_uni$Position)
+teams_from_college
+conference_from_college
+best_pos_from_college
+```
+
+Based on Player of the week data only:
+```{r}
+# create a frequency table to understand the university with the highest percentage of student athletes that make it to the NBA
+
+distinct_players = distinct(NBA_player_of_the_week, Player, .keep_all = TRUE)
+number_of_players_2 = table(distinct_players$`Pre-draft Team`)
+number_of_players_2 = as.data.frame(number_of_players_2)
+number_of_players_2 = number_of_players_2%>%
+  mutate(per_per_school = (number_of_players_2$Freq/nrow(number_of_players_2))*100)
+x2 = max(number_of_players_2$per_per_school)
+z2 = (number_of_players_2$per_per_school == x2)
+number_of_players_2$Var1[z2]
+```
+
+
+```{r}
+# statistical analysis
+#college decided based on above code chucks observation 
+alumunia_kent = NBA_player_of_the_week %>%
+  filter(`Pre-draft Team` == 'Kentucky')
+alumunia_kent = distinct(alumunia_kent, Player, .keep_all = TRUE)
+table(alumunia_kent$Position)
+mean(alumunia_kent$`Height CM`)
+mean(alumunia_kent$Weight)
+mean(alumunia_kent$Age)
+```
+
+Based of the above three methods:
+```{r}
+number_of_players$Var1[z]
+number_of_players_1$Var1[z1]
+number_of_players_2$Var1[z2]
+```
+
+Based on the above data classification we can thereby come to the conclusion that the best university in the program is that of Kentucky.
+
+Parameters for success while in the Kentucky program:
+Height : 200.2367-202.7273
+Weight : 236.0909pounds or 99.34352kg
+
+Average age at which athletes from Kentucky get drafted: 
+21.68182
+
+Most successful position to make it the the NBA from the program:
+Center
+
+Based on previous data the NBA team you are most likely to go to:
+Boston Celtics
+
+Based on previous data the conference you are most likely to play in:
+East
+
+### Which positions are most likely to be NBA Player of the Year?
+
+First, we begin with using our merged data set that contains the players of the week with the duplicates removed. From here, we will start with counting the frequency of the position for player of the week and seeing which position appears the most. This would give us an indication for which positions are often the most influential, although we have to consider that part of this comes down to the skill of the player in question. 
+
+```{r}
+#combined_unique_player_set
+
+positions <- sqldf("
+      select position, count(position) as frequency
+      from combined_unique_player_set
+      group by position
+      order by count(position)  desc
+      ")
+head(positions,20)
+toppositions = head(positions,6)
+```
+
+Now for a reader with limited knowledge of basketball, the positions as following above go G = Guard, C = Center, PG = Point Guard, PF = power forward, SG = Shooting Guard. F = Forward, SF = Small Forward, FC = forward center, GF = Guard Forward, G-F = Guard Forward. Now this presents us with an issue, because we have to consider that there is some overlap within the positions themselves. On looking at the positions printed out we see that the most prominent position in terms of Players of the Week is the Guard. However this information is insufficient to make a decision on which position would ideally win player of the year. Therefore, we will focus on which positions have the highest frequency of players in terms of assists and points scored based on the data subsets created earlier.
+
+```{r}
+assist_positions <- sqldf("
+      select position, count(position) as frequency
+      from top_50_assisters
+      group by position
+      order by count(position)  desc
+      ")
+assist_positions
+```
+
+We are only looking at the top 50 assisters and we notice that the top 6 positions for this list are: PG = Point Guard, G = Guard, SF = Small Forward, SG = Shooting Guard, PF = power forward, F = Forward.
+
+```{r}
+score_positions <- sqldf("
+      select position, count(position) as frequency
+      from top_50_scorers
+      group by position
+      order by count(position)  desc
+      ")
+score_positions
+```
+
+We are only looking at the top 50 scorers and we notice that the top 6 positions for this list are: PG = Point Guard, G = Guard, SF = Small Forward, SG = Shooting Guard, PF = power forward, C = Center.
+
+We will now combine the two frequency tables obtained for assists and scorers. To do this we will combine the tables by keeping Positions as our comparison variable to create a new table of the common positions between the above mentioned tables(i.e. assists and scorers). We will then combine our frequency and sort this variable to see which position has the highest count. 
+```{r}
+first_combine = inner_join(score_positions,assist_positions,by = 'Position')
+first_combine=first_combine%>%
+  mutate(freq = frequency.x+frequency.y)%>%
+  select(Position,freq)
+first_combine <- sqldf("
+      select Position, freq
+      from first_combine
+      order by freq  desc
+      ")
+first_combine
+```
+
+We will then combine our new table with that created to look at the frequency of the position for player of the week and seeing which position appears the most.
+
+```{r}
+second_combine = inner_join(first_combine,toppositions,by = 'Position')
+second_combine=second_combine%>%
+  mutate(com_freq = freq+frequency)
+second_combine <- sqldf("
+      select *
+      from second_combine
+      order by com_freq  desc
+      ")
+second_combine
+```
+
+Based on the above information we come to the conclusion that the best 5 positions are: PG = Point Guard, G = Guard, SF = Small Forward, SG = Shooting Guard, PF = power forward. However, it is most likely to win the player of the year if you are either a Point Guard and Guard since they have the highest frequency count across both the tables.
+

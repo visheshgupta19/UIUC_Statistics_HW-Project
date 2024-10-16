@@ -1,0 +1,271 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+### Name - NetID
+
+# Homework 1
+
+As a first step, I would encourage you to knit this file as a pdf (without making any changes besides deleting the text and code above) to ensure you are able to. 
+
+## Homework Instructions
+
+For questions that require code, please create a code chunk directly below the question and type your code there. Your knitted pdf will show both your code and your output. You are encouraged to knit your file as you work to check that your coding and formatting is done so appropriately.
+
+For written responses or multiple choice questions, please bold your (selected) answer. 
+
+## Grading Details
+
+All questions will be graded full credit (1 point), half credit (0.5 point) or no credit (0 points). 
+
+Full credit responses should have the correct response and the appropriate code. Half credit responses will have a reasonable attempt (typically no more than one small error or oversight), and no credit responses will be blank or attempts or attempts with at least one significant error. 
+
+
+### Exercise 1
+
+```{r}
+# starter
+x = 1:100
+```
+
+Calculate
+
+$$
+\sum_{i = 1}^{n} \ln(x_i).
+$$
+
+That is, sum the log of each element of `x`.
+
+_Hint: The simplest way to do this is with two functions, one nested within the other._
+
+
+```{r}
+# solution
+sum(log(x))
+```
+
+
+### Exercise 2
+
+Create a vector that spans the range 12 to 15.4, and that goes by intervals of 0.2. Name this vector `h`
+
+Please be sure to also run `h` at the end so that your vector is printed.
+
+```{r}
+# solution
+h=seq(12,15.4,0.2)
+h
+```
+
+
+### Exercise 3
+
+```{r}
+#starter
+labels = c("A","B","C")
+```
+
+Create a new vector named `full_labels` that repeats the sequence `labels` until this new vector has a length of 90
+
+Print `full_labels`
+
+```{r}
+#solution
+full_labels=rep(labels,times = 30)
+full_labels
+```
+
+
+### Exercise 4
+
+```{r}
+# starter
+x = 1:100
+```
+
+Create a new vector `y`, which adds 5 to the elements stored in odd indices of `x` and subtracts 10 from the elements stored even indices of `x`. 
+
+_Hint: Try creating a second vector and then take advantage of vectorized operations to complete this arithmetic._
+
+Finally, print `y`
+
+```{r}
+#solution
+z=c(5,-10)
+a=x+z
+y=a[1:100]
+y 
+```
+
+
+### Exercise 5
+
+Which of the following objects in `R` is technically a vector, but each entry of that vector is a set of one or more entries, and each element can be of a different type?
+
+_Please **bold** your answer_
+
+A Matrix
+
+A Function
+
+**A List**
+
+A Data Frame
+
+A Tibble
+
+### Exercise 6
+
+
+```{r}
+# starter
+set.seed(42)
+data = data.frame(
+  x = rep("A",8),
+  y = c(1, 1, 2, 3, 5, 8, 13, 21),
+  z = sample(8)
+)
+```
+
+The above code block creates a data frame, stored as the variable `data`.
+
+Extract the third entry of the vector `y`.
+
+_Hint: There is more than one way to do this. Any method that produces the correct result is fine._
+
+```{r}
+# solution
+data[3,2]
+```
+
+### Exercise 7
+
+
+```{r}
+# starter
+set.seed(42)
+a = rnorm(100, mean = 0, sd = 10)
+
+```
+
+Write a function called `f` that has a single argument `input`. We want this function to input a vector (that may have a mixture of positive and negative values) and produce a vector where all negative elements are replaced with 0. 
+
+_Hint: The `ifelse()` function could be useful here._
+
+Write and save your function, then run your function with vector `a` as your input and save the result to a new variable named `x_pos`, and then extract the first five elements of `x_pos`
+
+```{r}
+#solution
+ex7 <- function(input){
+  ifelse(input > 0, input, 0)}
+
+z=ex7(a)
+z[1:5]
+```
+
+### Exercise 8
+
+Create three vectors as follows. Each should have a length of 30.
+
+`x1`: Each element should be the value 1
+`x2`: The first 30 square numbers, starting from 1 (so 1, 4, 9, etc.)
+`x3`: A sequence running from 2 to 60 by 2's.
+
+Then create a new vector named y, such that each entry of y is the sum of the entries of `x1`, `x2`, and `x3` for that same position.
+
+Print `y`
+
+```{r}
+# solution
+x1=rep(1,times=30)
+x=1:30
+x2=x^2
+x3=seq(2,60,2)
+y=x1+x2+x3
+y
+
+```
+
+### Exercise 9
+
+**(Continued from Exercise 8)** Create a matrix `X` with columns `x1`, `x2`, and `x3`. 
+
+_Hint: Use the column bind function._
+
+Report the sum of the elements in row 17 of this matrix.
+
+```{r}
+# solution
+X=cbind(x1,x2,x3)
+sum=rowSums(X)
+sum[17]
+```
+
+### Exercise 10
+
+If you do not have this already, run this code to install ggplot2 (remove the # first)
+
+```{r}
+#starter_0
+#install.packages("ggplot2")
+```
+
+```{r}
+#starter
+library(ggplot2)
+mpg
+```
+
+mpg is a tibble (a data frame with some additionally nice properties) displaying information about 38 car models released between 1999 and 2008. Find more information about this data and the variables here:
+
+```{r}
+?mpg
+```
+
+Create a subsetted tibble named mpg_eff that contains only vehicles with a highway fuel efficiency of 30 or above. 
+
+_Hint: Use bracket notation, and remember you just need to filter rows, but you are selecting all of the columns._
+
+Then use an `R` command to report on how many observations are in mpg_eff
+
+
+```{r}
+#solution
+mpg_eff=mpg[mpg$hwy>=30,]
+nrow(mpg_eff)
+```
+
+### Exercise 11 (Bonus)
+
+**(Continued from Exercise 10)** Which manufacturer makes the vehicle with the highest **city** fuel efficiency? (Yes, you should use `R` code to find it!)
+
+_Hint: For full credit, your answer should be produced from only one line of code, but you can still get half credit if done across several lines of code._
+
+```{r}
+#solution
+mpg[mpg$cty==max(mpg$cty),]$manufacturer
+```
+
+### Exercise 12 (Bonus)
+
+**(Continued from Exercises 10 and 11)** Let's say that a local law requires city vehicles to have a city mpg rate of at least 20 to be sold within city limits. Create a function that will produce `TRUE` if the inputted value is 20 or above, and `FALSE` if the inputted value is below 20.
+
+Create the function, run it with the mpg data and name the output `pass`, and then column bind this new `pass` variable to the mpg data and call this new data `mpg_pass`.
+
+**You are encouraged to print the results for your own sake to check, but please delete the code to avoid printing the full results in your knitted pdf**
+
+Finally, run a subset of the mpg_pass data that only includes vehicles that don't pass the standard. No need to save it under a new name first--just print it.
+
+```{r}
+#solution
+local_law = function(input){
+  ifelse(input>=20, TRUE, FALSE)
+}
+pass = local_law(mpg$cty)
+mpg_pass = cbind(mpg, pass)
+mpg_pass[mpg_pass$pass == FALSE, ]
+```
+
+
+

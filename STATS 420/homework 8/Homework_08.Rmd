@@ -1,0 +1,295 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+### Name - vvgupta2
+
+# Homework 8
+
+## Homework Instructions
+
+For questions that require code, please create a code chunk directly below the question and type your code there. Your knitted pdf will show both your code and your output. You are encouraged to knit your file as you work to check that your coding and formatting is done so appropriately.
+
+For written responses or multiple choice questions, please bold your (selected) answer. 
+
+## Grading Details
+
+All questions will be graded full credit (1 point), half credit (0.5 point) or no credit (0 points). 
+
+Full credit responses should have the correct response and appropriate code (if applicable). Half credit responses will have a reasonable attempt (typically no more than one small error or oversight), and no credit responses will be either non-attempts or attempts with significant errors.
+
+### Exercise 1
+
+```{r}
+# starter
+library(MASS)
+```
+
+For exercises 1 - 8, use the `cats` dataset from the `MASS` package. Consider three models:
+
+- Simple: $Y = \beta_0 + \beta_1 x_1 + \epsilon$
+- Additive: $Y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \epsilon$
+- Interaction: $Y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_1 x_2 + \epsilon$
+
+where
+
+- $Y$ is the heart weight of a cat in grams
+- $x_1$ is the body weight of a cat in kilograms
+- $x_2$ is a dummy variable that takes the value $1$ when a cat is male
+
+Create the simple model, then extract the estimate for the change in average heart weight when body weight is increased by 1 kilogram.
+
+**Solution:**
+```{r}
+cat_model = lm (Hwt~Bwt, data = cats)
+summary(cat_model)
+summary(cat_model)$coefficients[2]
+```
+
+
+### Exercise 2
+
+Use the `ggplot2` package to create a scatterplot with `Bwt` on the x axis, `Hwt` on the y axis, and colored by the `Sex` of the cat.
+
+_Note: If you haven't installed `ggplot2` by this point, you may wish to do that here. Also, I would recommend installing the `tidyverse` package, (which contains `ggplot2`, `dplyr`, and many other popular packages). Occasionally, students have installation problems when installing `tidyverse` packages separately._
+
+Also, add best fit lines to this scatterplot, one for Female cats and one for Male cats. (standard error shading optional).
+
+Add a title--all other formatting optional.
+
+_Hint: Don't forget to library the `tidyverse` package (or just loading `ggplot2` is also fine!)_
+
+**Solution:**
+```{r}
+#install.packages("tidyverse")
+library(ggplot2)
+ggplot(data = cats, aes(x = Bwt, y = Hwt)) +
+        geom_point(aes(shape = factor(Sex))) +
+        geom_point(aes(color = factor(Sex))) +
+        geom_smooth(method = "lm", 
+                    se = FALSE, 
+                    aes(color = factor(Sex))) +
+        labs(title = "Scatter plot for Bwt vs Hwt")
+```
+
+**Observation:** As you might observe, the relationship between body weight and heart weight _may_ be different depending on the sex of the cat. We'll need to investigate a little more to see if this difference in slope can be explained by random chance, or if the difference is strong enough to suggest an interaction here!
+
+### Exercise 3
+
+Fit the interaction model. Then estimate the change in average heart weight when body weight is increased by 1 kilogram, for a female cat.
+
+_Hint: The answer corresponds to the estimate of exactly one of the model coefficients._
+
+**Solution:**
+
+```{r}
+cat_model_1 = lm (Hwt~Bwt*Sex, data = cats)
+summary(cat_model_1)$coefficients[2]
+```
+
+### Exercise 4
+
+Use the interaction model to estimate the change in average heart weight when body weight is increased by 1 kilogram, for a male cat.
+
+_Hint: More than one coefficient is involved in this answer._
+
+**Solution:**
+```{r}
+summary(cat_model_1)
+summary(cat_model_1)$coefficients[2]+summary(cat_model_1)$coefficients[4]
+```
+
+
+### Exercise 5
+
+Create a summary of the interaction model and examine the t-test for the interaction term. Which statement best interprets this result?
+
+```{r}
+summary(cat_model_1)
+coef(summary(cat_model_1))[[4,4]]
+```
+
+_Note, we're assuming $\alpha = 0.05$ is a reasonable benchmark for deciding here._
+
+**Solution:**
+
+- We have reasonably strong evidence that Sex does not predict heart weight
+- We have reasonably strong evidence that Sex does predict heart weight
+- We have reasonably strong evidence that the relationship of Sex on heart weight is additive across body weight
+
+**- We have reasonably strong evidence that the relationship of Sex on heart weight is not additive across body weight**
+
+**Anecdote:** This same test could also be completed with an F-test. But since it is only a one term difference, the t-test for the individual "predictor" will result in the same p-value. Try it out here if you wish!
+
+```{r}
+mod_add = lm(Hwt ~ Bwt + Sex, data = cats)
+mod_int = lm(Hwt ~ Bwt * Sex, data = cats)
+anova(mod_add, mod_int)
+```
+
+### Exercise 6
+
+Using the interaction model you fit, create a 95% confidence interval for the mean heart weight of a male cat with a body weight of 2.5kg
+
+_Hint: The entry for Sex won't be "Male"...check the data to see what the category names are!_
+
+**Solution:**
+```{r}
+predict(cat_model_1, interval = "confidence",newdata = data.frame(Bwt = 2.5, Sex="M"), level=0.95 )
+
+```
+
+
+### Exercise 7
+
+Using the interaction model, what is the difference in the estimated change in average heart weight when body weight is increased by 1 kilogram between male and female cats? In other words, how different do we expect these rate of changes to be?
+
+You may either type your answer below in the white space, or calculate/extract it using an R chunk if you wish.
+
+**Solution:**
+```{r}
+summary(cat_model_1)$coefficients[4]
+```
+
+
+### Exercise 8
+
+Now, let's switch over to the additive model. Even though the simple model would make more sense than the additive model, let's look at the dummy variable coefficient just for practice. Which of the following statements correctly interprets the beta coefficient for SexM?
+```{r}
+cat_model_2 = lm (Hwt~Bwt+Sex, data = cats)
+summary(cat_model_2)
+summary(cat_model_2)$coefficients[3]
+```
+
+**Solution:**
+
+- For every one unit increase in body weight, there is an 8.21% lower chance for the cat to be Male
+- For every one unit increase in body weight, there is an 8.21% lower chance for the cat to be Female
+
+**- We expect Male cats to have a heart weight 0.0821kg lower on average than Female cats of the same body weight**
+
+- We expect Female cats to have a heart weight 0.0821kg lower on average than Male cats of the same body weight
+
+
+### Exercise 9
+
+For exercises 9-12, use the built-in `ToothGrowth` dataset in `R`. We will use `len` as the response variable, which we will refer to as the tooth length. Use `?ToothGrowth` to learn more about the dataset--This data is not about human teeth...you'll need to read the documentation to learn more!
+
+We would like to consider the regression model
+
+$$
+Y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_1 x_2 + \epsilon
+$$
+
+where
+
+- $Y$ is tooth length (`len`)
+- $x_1$ is the `dose` in milligrams per day
+- $x_2$ is a dummy variable for `supp` that takes the value $1$ when the supplement type is ascorbic acid (VC) and $0$ when the supplement type is orange juice (OJ). (Note, `R` will assign these categories this way by default.)
+
+First, create a scatterplot with `dose` predicting `len`, and `supp` represented in color. Add a title and best fit lines for each dose. All other formatting optional.
+
+**Solution:**
+
+```{r}
+ggplot(data = ToothGrowth, aes(x = dose, y = len)) +
+        geom_point(aes(color = factor(supp))) +
+        labs(title = "Scatter plot for dose vs len") +
+        geom_smooth(method = "lm", se = FALSE, aes(color = factor(supp)))
+```
+
+### Exercise 10
+
+Now, fit the model and use this model to obtain an estimate of the change in mean tooth length for a dose increase of 1 milligram per day, when the supplement type is ascorbic acid.
+
+**Solution:**
+```{r}
+library(dplyr)
+new_table = ToothGrowth %>%
+  filter(supp == 'VC')
+Tooth_model = lm(len~dose, data = new_table)
+summary(Tooth_model)
+```
+
+We can see an estimate of 11.716 change in mean tooth length for a dose increase of 1 milligram per day, when the supplement type is ascorbic acid.
+
+### Exercise 11
+
+As you might have noticed, there are only three unique values for the dosages. For these last two exercises, consider the `dose` variable a categorical variable. 
+```{r}
+unique(ToothGrowth$dose)
+```
+
+The previous model, using dose as numeric, assumed that the difference between a dose of 0.5 and 1.0 is the same as the difference between a dose of 1.0 and 1.5 or 1.5 and 2.0. 
+
+Considering dose a categorical variable, we will only be able to make predictions at the three existing dosages, but no longer is the relationship between dose and response constrained to be linear.
+
+Fit the regression model
+
+$$
+Y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 + \epsilon
+$$
+
+where
+
+- $Y$ is tooth length
+- $x_1$ is a dummy variable that takes the value $1$ when the dose is 1.0 milligrams per day
+- $x_2$ is a dummy variable that takes the value $1$ when the dose is 2.0 milligrams per day
+- $x_3$ is a dummy variable that takes the value $1$ when the supplement type is ascorbic acid
+
+Use this model to obtain an estimate of the increase in mean tooth length when dosage changes from 1.0 to 2.0 milligrams per day. 
+
+_Notice, there is no interaction term for this model. Since this is an additive model, the expected change will be modeled the same for both supplements._
+
+_Hint: Coerce the `dose` variable to be a factor variable._
+
+**Solution:**
+```{r}
+ToothGrowth$dose = as.factor(ToothGrowth$dose)
+Y = ToothGrowth$len
+x_1 = ifelse(ToothGrowth$dose == 1, 1, 0)
+x_2 = ifelse(ToothGrowth$dose == 2, 1, 0)
+x_3 = ifelse(ToothGrowth$dose == "VC", 1, 0)
+tooth_model_1 = lm (Y~x_1+x_2+x_3)
+summary(tooth_model_1)
+```
+
+The estimate of the increase in mean tooth length when dosage changes from 1.0 to 2.0 milligrams per day ranges from 9.130 to 15.495
+
+### Exercise 12
+
+Suppose we wrote the the previous model with a different parameterization. (Basically, we just want to remove the intercept term to replace with our third dosage level)
+
+$$
+Y = \gamma_1 x_1 + \gamma_2 x_2 + \gamma_3 x_3 + \gamma_4 x_4  + \epsilon
+$$
+
+where
+
+- $Y$ is tooth length
+- $x_1$ is a dummy variable that takes the value $1$ when the dose is 0.5 milligrams per day
+- $x_2$ is a dummy variable that takes the value $1$ when the dose is 1.0 milligrams per day
+- $x_3$ is a dummy variable that takes the value $1$ when the dose is 2.0 milligrams per day
+- $x_4$ is a dummy variable that takes the value $1$ when the supplement type is ascorbic acid
+
+Calculate an estimate of $\gamma_3$.
+
+_Hint: To define the model, all you need to do differently is suppress the intercept term with 0 added to your predictor side._
+
+**Solution:**
+
+
+```{r}
+ToothGrowth$dose = as.factor(ToothGrowth$dose)
+Y = ToothGrowth$len
+x_1 = ifelse(ToothGrowth$dose == .5, 1, 0)
+x_2 = ifelse(ToothGrowth$dose == 1, 1, 0)
+x_3 = ifelse(ToothGrowth$dose == 2, 1, 0)
+x_4 = ifelse(ToothGrowth$supp == "VC", 1, 0)
+tooth_model_2 = lm (Y~0+x_1+x_2+x_3+x_4)
+summary(tooth_model_2)
+```
+
+estimate of $\gamma_3$ is 27.95

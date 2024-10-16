@@ -1,0 +1,197 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+### Name - vvgupta2
+
+# Homework 11
+
+## Homework Instructions
+
+For questions that require code, please create a code chunk directly below the question and type your code there. Your knitted pdf will show both your code and your output. You are encouraged to knit your file as you work to check that your coding and formatting is done so appropriately.
+
+For written responses or multiple choice questions, please bold your (selected) answer. 
+
+## Grading Details
+
+All questions will be graded full credit (1 point), half credit (0.5 point) or no credit (0 points). 
+
+Full credit responses should have the correct response and appropriate code (if applicable). Half credit responses will have a reasonable attempt (typically no more than one small error or oversight), and no credit responses will be either non-attempts or attempts with significant errors.
+
+### Exercise 1
+
+Which statement is true regarding the predictors of a sensible multiple regression model? **bold** your answer
+
+- Good models have predictors that are all highly correlated with each other
+
+**- Good models have predictors that are each highly correlated with at least one other predictor in the model**
+
+- Good models have predictors that rarely have high correlation with other predictors in the model
+
+### Exercise 2
+
+Which statement correctly interprets what _adjusted_ r^2 measures? **bold** your answer
+
+- The percentage of variability in the response variable that is _not_ explained by the predictors after adjusting for correlation likely explained due to random chance
+
+**- The percentage of variability in the response variable that _is_ explained by the predictors after adjusting for correlation likely explained due to random chance**
+
+- The probability of seeing this much correlation explained by random chance if none of the predictors are correlated with the response variable
+- The probability of seeing this much correlation explained by random chance if all of the predictors are correlated with the response variable
+
+### Exercise 3
+
+Let's examine the `Boston` data from the `MASS` package for the remaining exercises. Each row in this data represents one community and summary results of that commnity. For example: `medv` represents the median home value of that community.
+
+We'd like to try to predict the `medv` of a community based on other predictors in the model.
+
+First, create a full model using all other predictors as linear predictors of `medv`. Report the summary of your model
+
+```{r}
+#solution
+library(MASS)
+#?Boston
+#names(Boston)
+model1 = lm(medv~crim+rad+tax+zn+indus+ptratio+chas+black+nox+lstat+rm+age+dis, data = Boston)
+summary(model1)
+```
+
+### Exercise 4
+
+Compute the variance inflation factor for all predictors in the model by using the `vif` function in the `faraway` package.
+
+Which predictor is _most_ explained by the other predictors in this model?
+
+```{r}
+#solution
+library(faraway)
+vif(model1)
+```
+
+Tax: is the most explained by the other predictors in this model
+
+### Exercise 5
+
+Now compute a full correlation table of all variables in `Boston`. Round these correlations to 2 decimal places.
+
+
+```{r}
+#solution
+#install.packages("ggcorrplot")
+library(ggplot2)
+library(ggcorrplot)
+corr = round ( cor(Boston), 2)
+corr
+ggcorrplot(corr)
+```
+
+
+### Exercise 6
+
+There are three predictor variables that have fairly high correlations with one another: `indus`, `nox`, and `dis`. (`rad` and `tax` are also high with each other, but we'll revisit later).
+
+Take a look at the documentation for the data to learn what each of these variables represents. 
+
+Create three scatterplots, one for each pair, using whatever plotting option of your choice. _No particular formatting required._ Then briefly describe in words how these three variables seem to relate to one another. Please write your response in the white space below your code chunk for the plots.
+
+```{r}
+#solution
+plot(Boston$indus~Boston$nox, pch =20)
+plot(Boston$nox~Boston$dis, pch =20)
+plot(Boston$indus~Boston$dis, pch = 20)
+```
+
+There is a negative correlation between indus and dis as well as nox and dis but there is a positive correlation between indus and nox.
+
+### Exercise 7
+
+Let's consider how our model fit changes when we remove one or two of these three highly correlated predictors. Of these three predictors, it appears that `indus` has the weakest contribution to the full model. Followed by `nox`.
+
+Create two new models--one named `ind_mod` that excludes `indus`, and one named `indnox_mod` that excludes `indus` and `nox. All other predictors still included. 
+
+Now run summaries of these two models.
+
+_Hint: You can use a minus sign, like "-pred_name" to exclude a variable. This is very handy to pair with "." when simply removing one or two variables._
+
+```{r}
+#solution
+ind_mod = lm(medv~crim+rad+tax+zn+ptratio+chas+black+nox+lstat+rm+age+dis, data = Boston)
+summary(ind_mod)
+indnox_mod = lm(medv~crim+rad+tax+zn+ptratio+chas+black+lstat+rm+age+dis, data = Boston)
+summary(indnox_mod)
+```
+
+
+### Exercise 8
+
+Now, let's compare the full model to the two models we just created. 
+
+First, extract the adjusted r squared value of each of these three models. 
+
+Also complete F-tests to compare the full model to `ind_mod`, and another to compare `ind_mod` to `indnox_mod`. 
+
+```{r}
+#solution
+summary(model1)$adj.r.squared
+summary(ind_mod)$adj.r.squared
+summary(indnox_mod)$adj.r.squared
+anova(model1,ind_mod)
+anova(indnox_mod,ind_mod)
+```
+
+
+### Exercise 9
+
+Based on your results from Exercise 8, which seems to be the most predictive model for `medv` without being a redundant model?
+
+- The full model
+
+**- The `ind_mod`**
+
+- The `indnox_mod`
+
+### Exercise 10
+
+You might remember that `rad` and `tax` are two other predictors that are highly correlated with one another. Check the documentation to learn what these variables represent.
+
+You are going to make TWO scatterplots. One with base R plotting. No additional formatting required.
+
+Then make a scatterplot using ggplot2. **Specifically, you should use the `geom_jitter` option, set the width argument to 10, and set alpha to a low value, like 0.1.** _All other formatting optional_. 
+
+Then briefly discuss what the ggplot2 graph reveals that may not be obvious from the base R plot. View the Boston data if needed!
+
+```{r}
+#solution
+plot(Boston$tax~Boston$rad, pch = 20)
+ggplot(Boston,aes(x=rad, y=tax)) +
+  geom_point()+
+  geom_jitter(width=10, alpha=0.1)
+```
+
+### Exercise 11
+
+Since the correlation is not particularly consistent between these two predictor variables, it may make sense to hold both in the model.
+
+Create a new model: `indtax_mod`, that does not include `indus` or `tax`, but includes all other predictors. Then complete an F-test to against `ind_mod` to determine if there is a statistically significant improvement by keeping `tax`, or whether the difference is statistically negligible.
+
+```{r}
+#solution
+indtax_mod = lm(medv~crim+rad+zn+ptratio+chas+black+nox+lstat+rm+age+dis, data = Boston)
+anova(indtax_mod, ind_mod)
+```
+
+- Tax does not add any statistically significant improvement to the model
+
+**- Tax does add a statistically significant improvement to the model**
+
+### Exercise 12
+
+Just kidding. There is no exercise 12. This is just 1 free point. :)
+
+
+
+
+
+

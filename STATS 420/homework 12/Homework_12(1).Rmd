@@ -1,0 +1,183 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+### Name - vvgupta2
+
+# Homework 12
+
+## Homework Instructions
+
+For questions that require code, please create a code chunk directly below the question and type your code there. Your knitted pdf will show both your code and your output. You are encouraged to knit your file as you work to check that your coding and formatting is done so appropriately.
+
+For written responses or multiple choice questions, please bold your (selected) answer. 
+
+## Grading Details
+
+All questions will be graded full credit (1 point), half credit (0.5 point) or no credit (0 points). 
+
+Full credit responses should have the correct response and appropriate code (if applicable). Half credit responses will have a reasonable attempt (typically no more than one small error or oversight), and no credit responses will be either non-attempts or attempts with significant errors.
+
+### Exercise 1
+
+For exercises 1 - 8, use the the built-in `R` dataset `mtcars`. Use `mpg` as the response variable. Do not modify any of the data. (An argument could be made for `cyl`, `gear`, and `carb` to be coerced to factors, but for simplicity, we will keep them numeric.)
+
+```{r, eval = FALSE}
+# starter
+mtcars
+```
+
+Fit an additive linear model with all available variables as predictors. Call this model `full_mod`. Which predictor seems to be most explained by the other predictors in the model?
+
+_Hint: We learned a function in chapter 15 that can help here!_
+
+```{r}
+# solution
+full_mod = lm(mpg ~ ., data = mtcars)
+summary(full_mod)
+library(faraway)
+vif(full_mod)
+```
+
+### Exercise 2
+
+Create a function that takes a model name as input and calculates the LOOCV-RMSE of that model.
+
+Once created, calculate the LOOCV-RMSE of the model fit in Exercise 1.
+
+```{r}
+# solution
+calc_loocv_rmse = function(model) {
+  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
+calc_loocv_rmse(full_mod)
+
+```
+
+### Exercise 3
+
+Start with the full model, and then perform variable selection using backwards AIC. Call this model `selected`. Then print the model coefficients of the selected model.
+
+_Tip: use `trace = 0` as an argument to suppress lengthy output_
+
+```{r}
+# solution
+selected = step(full_mod, direction = "backward", trace = 0)
+coef(selected)
+```
+
+### Exercise 4
+
+What is the LOOCV-RMSE of the "selected" model?
+
+```{r}
+# solution
+calc_loocv_rmse(selected)
+```
+
+### Exercise 5
+
+Create a residual plot for the **full model**, and also run a Breusch-Pagan test and Shapiro-Wilk test.
+
+```{r}
+# solution
+plot (fitted(full_mod), resid (full_mod), main = "Fitted versus Residuals plot", pch=20)
+abline(h=0)
+shapiro.test(resid (full_mod))
+library(lmtest)
+bptest (full_mod)
+```
+
+### Exercise 6
+
+Create a residual plot for the **selected model**, and also run a Breusch-Pagan test and Shapiro-Wilk test.
+
+```{r}
+# solution
+plot (fitted(selected), resid (selected), main = "Fitted versus Residuals plot", pch=20)
+abline(h=0)
+shapiro.test(resid (selected))
+bptest (selected)
+```
+
+### Exercise 7
+
+Based on the previous exercises, which model is probably better for predicting?
+
+- The selected model: It has better accuracy, and the model diagnostics are reasonable
+- The selected model: The model diagnostics for the full model are problematic and will lead to unreliable estimates
+
+**- The full model: It has better accuracy, and the model diagnostics are reasonable**
+
+- The full model: The model diagnostics for the selected model are problematic and will lead to unreliable estimates
+
+### Exercise 8
+
+```{r, eval = FALSE}
+# starter
+LifeCycleSavings
+```
+
+For exercises 8 - 12, use the the built-in `R` dataset `LifeCycleSavings`. Use `sr` as the response variable. 
+
+Fit a model with all available predictors as well as their two-way interactions. What is the Adjusted $R^2$ of this model?
+
+_Hint: You can use the "^2" notation to do this concisely--see 16.3 from the book for an example._
+
+```{r}
+# solution
+model1 = lm(sr ~ .^2, data = LifeCycleSavings)
+summary(model1)$adj.r.squared
+```
+
+### Exercise 9
+
+Start with the model fit in Exercise 8, then perform variable selection using backwards **BIC**. Print the coefficients of the selected model.
+
+```{r}
+# solution
+n = length(resid(model1))
+step(model1, direction = "backward", k = log(n), trace = 0)
+back_bic = step(model1, direction = "backward", k = log(n), trace = 0)
+coef(back_bic)
+```
+
+### Exercise 10
+
+Start with the model fit in Exercise 8, then perform variable selection using backwards AIC. Print the coefficients of the selected model.
+
+```{r}
+# solution
+step(model1, direction = "backward")
+#note we can also turn off with trace = 0
+back_aic_2 = step(model1, direction = "backward", trace = 0)
+coef(back_aic_2)
+```
+
+_If done correctly, you'll find that AIC and BIC in this case actually produce the same model! It doesn't always happen that way, but sometimes it does._
+
+### Exercise 11
+
+Consider the full model in Exercise 8 and the BIC model (or AIC) model fit next. Based on LOOCV-RMSE, which of these models is likely more accurate at prediction?
+
+```{r}
+# solution
+calc_loocv_rmse(back_bic)
+calc_loocv_rmse(back_aic_2)
+```
+
+- The full model is likely more accurate at prediction
+- **The selected model is likely more accurate at prediction**
+
+### Exercise 12
+
+Which **one** of these statements best distinguishes AIC vs. BIC for model selection? Bold your answer.
+
+- AIC will generally favor more interaction terms and fewer solo predictors
+- BIC will generally favor more interaction terms and fewer solo predictors
+- AIC will generally favor smaller models with fewer parameters
+
+**- BIC will generally favor smaller models with fewer parameters**
+

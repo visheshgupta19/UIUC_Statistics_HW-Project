@@ -1,0 +1,188 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+### Name - vvgupta2
+
+# Homework 4
+
+## Homework Instructions
+
+For questions that require code, please create a code chunk directly below the question and type your code there. Your knitted pdf will show both your code and your output. You are encouraged to knit your file as you work to check that your coding and formatting is done so appropriately.
+
+For written responses or multiple choice questions, please bold your (selected) answer. 
+
+## Grading Details
+
+All questions will be graded full credit (1 point), half credit (0.5 point) or no credit (0 points). 
+
+Full credit responses should have the correct response and appropriate code (if applicable). Half credit responses will have a reasonable attempt (typically no more than one small error or oversight), and no credit responses will be either non-attempts or attempts with significant errors.
+
+
+### Exercise 1
+
+Consider a random variable $X$ that has a $t$ distribution with $7$ degrees of freedom. Calculate $P[X > 1.3]$.
+
+_Hint: By default `pt()` considers area under the curve to the left of the given value._
+
+```{r}
+#solution
+pt(1.3, df=7, lower.tail = FALSE)
+```
+
+
+### Exercise 2
+
+Consider a random variable $Y$ that has a $t$ distribution with $9$ degrees of freedom. Find $c$ such that $P[X > c] = 0.025$.
+
+```{r}
+#solution
+qt(0.025,df=9, lower.tail = FALSE)
+```
+
+**c = 2.262157**
+
+### Exercise 3
+
+For this Exercise, use the built-in `trees` dataset in `R`. Fit a simple linear regression model with `Girth` as the response and `Height` as the predictor. Extract the p-value for testing $H_0: \beta_1 = 0$ vs $H_1: \beta_1 \neq 0$?
+
+_Hint: Section 8.6 of the book offers several examples of how to extract different elements from a linear model summary. That might be helpful to reference._
+
+```{r}
+#solution
+?trees
+model_1 = lm(Girth ~ Height, data = trees)
+names(model_1)
+(summary(model_1))$coefficients[2,4]
+```
+
+
+### Exercise 4
+
+Continue using the Tree model you just created. Create a **90%** confidence interval for $\beta_1$?. Then calculate the total width of that interval.
+
+_Hint: Remember to specify the confidence level._
+
+```{r}
+#solution
+a = confint(model_1, level = 0.90)
+a
+total_width = abs(a[2,2])-abs(a[2,1])
+total_width
+```
+
+
+### Exercise 5
+
+Calculate a **95%** confidence interval for the mean tree girth of a tree that is 79 feet tall.
+
+Report only the lower and upper bound of your interval. 
+
+_Hint: Use brackets to extract only those elements._
+
+```{r}
+#solution
+a = predict(model_1, data.frame(Height=79), interval = "confidence", level = 0.95)
+bound=c(a[2],a[3])
+bound
+```
+
+
+### Exercise 6
+
+For the next several exercises, use the `faithful` dataset, which is built into `R`. 
+
+Suppose we would like to predict the duration of an eruption of [the Old Faithful geyser](http://www.yellowstonepark.com/about-old-faithful/) in [Yellowstone National Park](https://en.wikipedia.org/wiki/Yellowstone_National_Park) based on the waiting time before an eruption. Fit a simple linear model in `R` that accomplishes this task. 
+
+What is the value of $\text{SE}[\hat{\beta}_1]$?
+
+_Hint: Section 8.6 of the book offers several examples of how to extract different elements from a linear model summary. That might be helpful to reference._
+
+```{r}
+#solution
+?faithful
+model_2 = lm (eruptions ~ waiting, data = faithful)
+std_err = (summary(model_2))$coefficients[2,2]
+std_err
+```
+
+
+### Exercise 7
+
+What is the value of the test statistic for testing $H_0: \beta_1 = 0$ vs $H_1: \beta_1 \neq 0$?
+
+```{r}
+#solution
+t = (((summary(model_2))$coefficients[2,1]) - 0 )/std_err
+t
+```
+
+
+### Exercise 8
+
+Take a look at your linear model summary from the `faithful` data.
+
+Test $H_0: \beta_1 = 0$ vs $H_1: \beta_1 \neq 0$ with $\alpha = 0.01$. What decision do you make?
+
+
+- Fail to reject $H_0$
+
+- **Reject $H_0$**
+
+- Reject $H_1$
+- Not enough information
+
+
+### Exercise 9
+
+Now let's take a look at the intercept. Calculate and report a 90% confidence interval for $\beta_0$.
+
+```{r}
+#solution
+summary(model_2)
+beta_0_hat = summary(model_2)$coefficients[1,1]
+beta_0_err = summary(model_2)$coefficients[1,2]
+t = qt(0.95, 270)
+upper_b = beta_0_hat + (t*beta_0_err)
+lower_b = beta_0_hat - (t*beta_0_err)
+ci= c(lower_b, upper_b)
+ci
+```
+
+
+### Exercise 10
+
+Create a 99% **prediction** interval for a new obersation's eruption duration for a waiting time of 72 minutes. 
+
+Output only the **lower** and **upper** bound of your interval. 
+
+_Hint: Use brackets at the end of the argument._
+
+```{r}
+#solution
+b = predict(model_2, data.frame(waiting=72), interval = "predict", level=0.99)
+ans = c (b[2],b[3])
+ans
+```
+
+
+### Exercise 11
+
+Consider a 90% confidence interval for the mean response and a 90% prediction interval, both at the same $x$ value. Which interval is narrower?
+
+- **Confidence interval**
+
+- Prediction interval
+- No enough information, it depends on the value of $x$
+
+
+### Exercise 12
+
+Suppose you test $H_0: \beta_1 = 0$ vs $H_1: \beta_1 \neq 0$ with $\alpha = 0.01$ and fail to reject $H_0$. Which statement best describes our finding?
+
+- There is no relationship between the response and the predictor.
+- **If $\beta_1$ really equals 0, then we would observe a $\hat{\beta}_1$ value as extreme as we did more than 1% of the time.**
+- We have strong evidence that $\beta_1$ is not equal to 0.
+- The probability that $\beta_1 = 0$ is very high.
+
